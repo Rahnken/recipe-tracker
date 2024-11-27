@@ -1,0 +1,87 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// src/prisma/schema.prisma
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+model Recipe {
+    id          String             @id @default(cuid())
+    name        String
+    description String?
+    servings    Int                @default(1)
+    prepTime    Int? // in minutes
+    cookTime    Int? // in minutes
+    // reference url for external recipes
+    sourceUrl   String?
+    createdAt   DateTime           @default(now())
+    updatedAt   DateTime           @updatedAt
+    createdBy   String // Clerk User ID
+    // relations
+    ingredients RecipeIngredient[]
+    mealPlans   MealPlanRecipe[]
+}
+
+model Ingredient {
+    id        String             @id @default(cuid())
+    name      String             @unique
+    category  String? // e.g., produce, meat, dairy
+    createdAt DateTime           @default(now())
+    updatedAt DateTime           @updatedAt
+    // relations
+    recipes   RecipeIngredient[]
+}
+
+model RecipeIngredient {
+    id           String     @id @default(cuid())
+    recipeId     String
+    ingredientId String
+    quantity     Float
+    unit         String // e.g., grams, cups, tablespoons
+    notes        String?
+    // relations
+    recipe       Recipe     @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+    ingredient   Ingredient @relation(fields: [ingredientId], references: [id])
+
+    @@index([recipeId])
+    @@index([ingredientId])
+}
+
+model MealPlan {
+    id        String           @id @default(cuid())
+    startDate DateTime
+    endDate   DateTime
+    createdBy String // Clerk User ID
+    createdAt DateTime         @default(now())
+    updatedAt DateTime         @updatedAt
+    // relations
+    meals     MealPlanRecipe[]
+}
+
+model MealPlanRecipe {
+    id         String   @id @default(cuid())
+    mealPlanId String
+    recipeId   String
+    date       DateTime
+    mealType   MealType
+    servings   Int      @default(1)
+    // relations
+    mealPlan   MealPlan @relation(fields: [mealPlanId], references: [id], onDelete: Cascade)
+    recipe     Recipe   @relation(fields: [recipeId], references: [id])
+
+    @@index([mealPlanId])
+    @@index([recipeId])
+}
+
+enum MealType {
+    BREAKFAST
+    LUNCH
+    DINNER
+    SNACK
+}

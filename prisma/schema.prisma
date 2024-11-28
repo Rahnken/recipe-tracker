@@ -12,20 +12,47 @@ generator client {
 }
 
 model Recipe {
-    id          String             @id @default(cuid())
-    name        String
-    description String?
-    servings    Int                @default(1)
-    prepTime    Int? // in minutes
-    cookTime    Int? // in minutes
+    id           String                @id @default(cuid())
+    name         String
+    description  String?
+    servings     Int                   @default(1)
+    prepTime     Int? // in minutes
+    cookTime     Int? // in minutes
     // reference url for external recipes
-    sourceUrl   String?
-    createdAt   DateTime           @default(now())
-    updatedAt   DateTime           @updatedAt
-    createdBy   String // Clerk User ID
+    sourceUrl    String?
+    createdAt    DateTime              @default(now())
+    updatedAt    DateTime              @updatedAt
+    createdBy    String // Clerk User ID
+    mealType     MealType
     // relations
-    ingredients RecipeIngredient[]
-    mealPlans   MealPlanRecipe[]
+    ingredients  RecipeIngredient[]
+    mealPlans    MealPlanRecipe[]
+    instructions RecipeInstruction[]
+    favourites   UserFavouriteRecipe[]
+}
+
+// Add this model to your schema.prisma
+model UserFavouriteRecipe {
+    id        String   @id @default(cuid())
+    userId    String // Clerk User ID
+    recipeId  String
+    createdAt DateTime @default(now())
+    recipe    Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+
+    @@unique([userId, recipeId])
+    @@index([userId])
+    @@index([recipeId])
+}
+
+model RecipeInstruction {
+    id         String @id @default(cuid())
+    recipeId   String
+    step       String
+    orderIndex Int // For maintaining order
+    recipe     Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+
+    @@index([recipeId])
+    @@index([recipeId, orderIndex])
 }
 
 model Ingredient {

@@ -1,7 +1,24 @@
 // src/app/recipes/new/page.tsx
+"use client";
+
 import { RecipeForm } from "~/app/_components/recipes/recipe-form";
+import { type RecipeFormData } from "~/lib/schemas/recipe";
+import { api } from "~/trpc/react";
+import { useRouter } from "next/navigation";
 
 export default function NewRecipePage() {
+  const router = useRouter();
+  const createRecipe = api.recipes.create.useMutation({
+    onSuccess: (recipe) => {
+      // Redirect to the new recipe's page
+      router.push(`/recipes/${recipe.id}`);
+    },
+  });
+
+  const handleSubmit = async (data: RecipeFormData) => {
+    await createRecipe.mutateAsync(data);
+  };
+
   return (
     <div className="mx-auto max-w-3xl">
       <div className="mb-8">
@@ -10,7 +27,10 @@ export default function NewRecipePage() {
           Add a new recipe to your collection
         </p>
       </div>
-      <RecipeForm />
+      <RecipeForm
+        onSubmit={handleSubmit}
+        isSubmitting={createRecipe.isPending}
+      />
     </div>
   );
 }

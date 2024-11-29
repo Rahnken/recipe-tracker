@@ -29,9 +29,27 @@ model Recipe {
     mealPlans    MealPlanRecipe[]
     instructions RecipeInstruction[]
     favourites   UserFavouriteRecipe[]
+    shares       RecipeShare[]
 }
 
-// Add this model to your schema.prisma
+model RecipeShare {
+    id         String           @id @default(cuid())
+    recipeId   String
+    userId     String // Clerk User ID of the person it's shared with
+    permission RecipePermission
+    createdAt  DateTime         @default(now())
+    recipe     Recipe           @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+
+    @@unique([recipeId, userId])
+    @@index([userId])
+    @@index([recipeId])
+}
+
+enum RecipePermission {
+    VIEW
+    EDIT
+}
+
 model UserFavouriteRecipe {
     id        String   @id @default(cuid())
     userId    String // Clerk User ID

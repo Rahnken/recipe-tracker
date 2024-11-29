@@ -11,13 +11,24 @@ import { api } from "~/trpc/react";
 
 interface RecipeCardProps {
   recipe: Recipe & {
-    isfavourite: boolean;
+    isFavourite: boolean;
+    ingredients: {
+      ingredient: {
+        name: string;
+      };
+      quantity: number;
+      unit: string;
+    }[];
+    instructions: {
+      step: string;
+      orderIndex: number;
+    }[];
   };
 }
 
 export function RecipeCard({ recipe }: RecipeCardProps) {
   const utils = api.useUtils();
-  const togglefavourite = api.recipes.togglefavourite.useMutation({
+  const togglefavourite = api.recipes.toggleFavourite.useMutation({
     onSuccess: () => {
       void utils.recipes.getAll.invalidate();
     },
@@ -28,8 +39,13 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
   return (
     <Card className="group relative overflow-hidden">
       <CardHeader>
-        <div className="flex items-start justify-between">
-          <CardTitle className="line-clamp-2">{recipe.name}</CardTitle>
+        <div className="flex items-center justify-between">
+          <Link href={`/recipes/${recipe.id}`} className="w-full">
+            <CardTitle className="line-clamp-2">
+              <span className="sr-only">View recipe details</span>
+              {recipe.name}
+            </CardTitle>
+          </Link>
           <Button
             variant="ghost"
             size="icon"
@@ -40,7 +56,7 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
             <Heart
               className={cn(
                 "h-5 w-5",
-                recipe.isfavourite
+                recipe.isFavourite
                   ? "fill-current text-red-500"
                   : "text-muted-foreground",
               )}
@@ -49,32 +65,24 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
         </div>
       </CardHeader>
       <CardContent>
-        <div className="space-y-2">
-          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            {totalTime > 0 && (
-              <span className="flex items-center gap-1">
-                <Clock className="h-4 w-4" />
-                {totalTime} min
-              </span>
-            )}
+        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+          {totalTime > 0 && (
             <span className="flex items-center gap-1">
-              <Users className="h-4 w-4" />
-              {recipe.servings} servings
+              <Clock className="h-4 w-4" />
+              {totalTime} min
             </span>
-          </div>
-          {recipe.description && (
-            <p className="line-clamp-2 text-sm text-muted-foreground">
-              {recipe.description}
-            </p>
           )}
+          <span className="flex items-center gap-1">
+            <Users className="h-4 w-4" />
+            {recipe.servings} servings
+          </span>
         </div>
+        {recipe.description && (
+          <p className="line-clamp-2 text-sm text-muted-foreground">
+            {recipe.description}
+          </p>
+        )}
       </CardContent>
-      <Link
-        href={`/recipes/${recipe.id}`}
-        className="absolute inset-0 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-      >
-        <span className="sr-only">View recipe details</span>
-      </Link>
     </Card>
   );
 }

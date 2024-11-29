@@ -8,6 +8,7 @@ import {
   type CreateRecipeInput,
   createRecipeSchema,
 } from "~/lib/schemas/recipe";
+import { type RecipeFormData, recipeFormSchema } from "~/lib/schemas/recipe";
 
 import { Button } from "~/components/ui/button";
 import {
@@ -30,20 +31,35 @@ import {
 } from "~/components/ui/select";
 import { MealType } from "@prisma/client";
 import { IngredientCombobox } from "./ingredient-combobox";
+import { api } from "~/trpc/react";
 
-export function RecipeForm() {
-  const form = useForm<CreateRecipeInput>({
-    resolver: zodResolver(createRecipeSchema),
-    defaultValues: {
+interface RecipeFormProps {
+  defaultValues?: Partial<RecipeFormData>;
+  onSubmit: (data: RecipeFormData) => Promise<void>;
+  isSubmitting?: boolean;
+}
+
+export function RecipeForm({
+  defaultValues,
+  onSubmit,
+  isSubmitting,
+}: RecipeFormProps) {
+  const form = useForm<RecipeFormData>({
+    resolver: zodResolver(recipeFormSchema),
+    defaultValues: defaultValues ?? {
       name: "",
       description: "",
       servings: 1,
-      prepTime: undefined,
-      cookTime: undefined,
       mealType: undefined,
-      sourceUrl: "",
       ingredients: [],
       instructions: [],
+    },
+  });
+  const utils = api.useUtils();
+  const createRecipe = api.recipes.create.useMutation({
+    onSuccess: async () => {
+      await utils.post.invalidate();
+      form.reset();
     },
   });
 
@@ -65,11 +81,6 @@ export function RecipeForm() {
     control: form.control,
     name: "instructions",
   });
-
-  async function onSubmit(data: CreateRecipeInput) {
-    // TODO: Implement API call
-    console.log(data);
-  }
 
   return (
     <Form {...form}>

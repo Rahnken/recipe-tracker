@@ -6,8 +6,22 @@ import { type RecipeFiltersType } from "./recipe-filters";
 import { RecipeCard } from "./recipe-card";
 import { Skeleton } from "~/components/ui/skeleton";
 
+// Update the interface to match the router return type
 interface RecipeGridProps {
-  recipes?: Recipe[];
+  recipes?: (Recipe & {
+    isFavourite: boolean; // Changed from isfavourite to isFavourite
+    ingredients: {
+      ingredient: {
+        name: string;
+      };
+      quantity: number;
+      unit: string;
+    }[];
+    instructions: {
+      step: string;
+      orderIndex: number;
+    }[];
+  })[];
   filters: RecipeFiltersType;
   isLoading: boolean;
 }
@@ -18,8 +32,8 @@ export function RecipeGrid({
   isLoading,
 }: RecipeGridProps) {
   const filteredRecipes = recipes
-    .filter((recipe) => filters.mealTypes.includes(recipe.mealType as MealType))
-    .filter((recipe) => !filters.showFavourites || recipe.favourites);
+    .filter((recipe) => filters.mealTypes.includes(recipe.mealType))
+    .filter((recipe) => !filters.showFavourites || recipe.isFavourite); // Changed from favourites to isFavourite
 
   const sortedRecipes = [...filteredRecipes].sort((a, b) => {
     if (filters.sortBy === "name") {
@@ -40,6 +54,7 @@ export function RecipeGrid({
     return 0;
   });
 
+  // Fix the type in the reduce function
   const recipesByMealType = Object.values(MealType).reduce(
     (acc, mealType) => {
       if (filters.mealTypes.includes(mealType)) {
@@ -49,7 +64,7 @@ export function RecipeGrid({
       }
       return acc;
     },
-    {} as Record<MealType, Recipe[]>,
+    {} as Record<MealType, typeof sortedRecipes>,
   );
 
   if (isLoading) {

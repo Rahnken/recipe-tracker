@@ -4,10 +4,7 @@
 import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus, Trash2, ArrowUp, ArrowDown } from "lucide-react";
-import {
-  type CreateRecipeInput,
-  createRecipeSchema,
-} from "~/lib/schemas/recipe";
+
 import { type RecipeFormData, recipeFormSchema } from "~/lib/schemas/recipe";
 
 import { Button } from "~/components/ui/button";
@@ -22,16 +19,10 @@ import {
 import { Input } from "~/components/ui/input";
 import { Textarea } from "~/components/ui/textarea";
 import { Card } from "~/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "~/components/ui/select";
+
 import { MealType } from "@prisma/client";
 import { IngredientCombobox } from "./ingredient-combobox";
-import { api } from "~/trpc/react";
+import { MealTypeSelect } from "./mealtype-multiselect";
 
 interface RecipeFormProps {
   defaultValues?: Partial<RecipeFormData>;
@@ -50,16 +41,9 @@ export function RecipeForm({
       name: "",
       description: "",
       servings: 1,
-      mealType: undefined,
+      mealType: [],
       ingredients: [],
       instructions: [],
-    },
-  });
-  const utils = api.useUtils();
-  const createRecipe = api.recipes.create.useMutation({
-    onSuccess: async () => {
-      await utils.post.invalidate();
-      form.reset();
     },
   });
 
@@ -196,21 +180,14 @@ export function RecipeForm({
           name="mealType"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Meal Type</FormLabel>
-              <Select value={field.value} onValueChange={field.onChange}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a meal type" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {Object.values(MealType).map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {type.charAt(0) + type.slice(1).toLowerCase()}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <FormLabel>Meal Types</FormLabel>
+              <FormControl>
+                <MealTypeSelect
+                  options={Object.values(MealType)}
+                  selected={field.value ?? []}
+                  onChange={field.onChange}
+                />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -225,6 +202,8 @@ export function RecipeForm({
               size="sm"
               onClick={() =>
                 appendIngredient({
+                  id: "",
+                  recipeId: "",
                   ingredientId: "", // or undefined
                   quantity: 0,
                   unit: "",
@@ -315,6 +294,8 @@ export function RecipeForm({
               size="sm"
               onClick={() =>
                 appendInstruction({
+                  id: "",
+                  recipeId: "",
                   step: "",
                   orderIndex: instructionFields.length,
                 })
@@ -385,7 +366,9 @@ export function RecipeForm({
           </div>
         </div>
         <div className="flex justify-end">
-          <Button type="submit">Create Recipe</Button>
+          <Button type="submit" disabled={isSubmitting}>
+            Create Recipe
+          </Button>
         </div>
       </form>
     </Form>

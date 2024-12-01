@@ -23,7 +23,7 @@ model Recipe {
     createdAt    DateTime              @default(now())
     updatedAt    DateTime              @updatedAt
     createdBy    String // Clerk User ID
-    mealType     MealType
+    mealType     MealType[]
     // relations
     ingredients  RecipeIngredient[]
     mealPlans    MealPlanRecipe[]
@@ -129,4 +129,11 @@ enum MealType {
     LUNCH
     DINNER
     SNACK
+    DRINK
+    MAIN
+    SIDE
+    APPETIZER
+    DESSERT
+    QUICK
+    SLOWCOOKER
 }

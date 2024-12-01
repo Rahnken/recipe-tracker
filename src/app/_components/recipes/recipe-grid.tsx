@@ -32,8 +32,13 @@ export function RecipeGrid({
   isLoading,
 }: RecipeGridProps) {
   const filteredRecipes = recipes
-    .filter((recipe) => filters.mealTypes.includes(recipe.mealType))
-    .filter((recipe) => !filters.showFavourites || recipe.isFavourite); // Changed from favourites to isFavourite
+    .filter((recipe) =>
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+      recipe.mealType.some((mealType) =>
+        filters.mealTypes.includes(mealType as MealType),
+      ),
+    )
+    .filter((recipe) => !filters.showFavourites || recipe.isFavourite);
 
   const sortedRecipes = [...filteredRecipes].sort((a, b) => {
     if (filters.sortBy === "name") {
@@ -54,41 +59,17 @@ export function RecipeGrid({
     return 0;
   });
 
-  // Fix the type in the reduce function
-  const recipesByMealType = Object.values(MealType).reduce(
-    (acc, mealType) => {
-      if (filters.mealTypes.includes(mealType)) {
-        acc[mealType] = sortedRecipes.filter(
-          (recipe) => recipe.mealType === mealType,
-        );
-      }
-      return acc;
-    },
-    {} as Record<MealType, typeof sortedRecipes>,
-  );
-
   if (isLoading) {
     return <RecipeGridSkeleton />;
   }
 
   return (
-    <div className="space-y-8">
-      {Object.entries(recipesByMealType).map(([mealType, recipes]) => (
-        <section key={mealType}>
-          <h2 className="mb-4 text-2xl font-semibold">
-            {mealType.charAt(0) + mealType.slice(1).toLowerCase()}
-          </h2>
-          {recipes.length === 0 ? (
-            <p className="text-muted-foreground">No recipes found</p>
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {recipes.map((recipe) => (
-                <RecipeCard key={recipe.id} recipe={recipe} />
-              ))}
-            </div>
-          )}
-        </section>
-      ))}
+    <div className="space-y-8 p-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {sortedRecipes.map((recipe) => (
+          <RecipeCard key={recipe.id} recipe={recipe} />
+        ))}
+      </div>
     </div>
   );
 }

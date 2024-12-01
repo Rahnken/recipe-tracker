@@ -20,7 +20,7 @@ export default function RootLayout({
       <TRPCReactProvider>
         <html lang="en" className={`${GeistSans.variable}`}>
           <body>
-            <div className="relative flex min-h-screen flex-col">
+            <div className="relative flex min-h-screen flex-col p-3">
               <MainNav />
               <main className="mx-auto flex-1">
                 <div className="container py-6">{children}</div>

@@ -3,35 +3,9 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import { MealType } from "@prisma/client";
+import { recipeFormSchema } from "~/lib/schemas/recipe";
 
 // First, define our input schema for creating recipes
-const createRecipeSchema = z.object({
-  name: z.string().min(1, "Recipe name is required"),
-  description: z.string().optional(),
-  servings: z.number().int().positive().default(1),
-  prepTime: z.number().int().positive().optional(),
-  cookTime: z.number().int().positive().optional(),
-  sourceUrl: z.string().url().optional(),
-  mealType: z.nativeEnum(MealType),
-  ingredients: z
-    .array(
-      z.object({
-        ingredientId: z.string(),
-        quantity: z.number().positive(),
-        unit: z.string().min(1),
-        notes: z.string().optional(),
-      }),
-    )
-    .min(1, "At least one ingredient is required"),
-  instructions: z
-    .array(
-      z.object({
-        step: z.string().min(1),
-        orderIndex: z.number().int(),
-      }),
-    )
-    .min(1, "At least one instruction step is required"),
-});
 
 export const recipesRouter = createTRPCRouter({
   getAll: protectedProcedure.query(async ({ ctx }) => {
@@ -123,7 +97,7 @@ export const recipesRouter = createTRPCRouter({
     }),
 
   create: protectedProcedure
-    .input(createRecipeSchema)
+    .input(recipeFormSchema)
     .mutation(async ({ ctx, input }) => {
       const recipe = await ctx.db.recipe.create({
         data: {
@@ -208,29 +182,7 @@ export const recipesRouter = createTRPCRouter({
     .input(
       z.object({
         id: z.string(),
-        name: z.string().min(1, "Recipe name is required"),
-        description: z.string().optional(),
-        servings: z.number().int().positive().default(1),
-        prepTime: z.number().int().positive().optional(),
-        cookTime: z.number().int().positive().optional(),
-        sourceUrl: z.string().url().optional().or(z.literal("")),
-        mealType: z.nativeEnum(MealType),
-        ingredients: z.array(
-          z.object({
-            id: z.string().optional(), // existing ingredient relation id
-            ingredientId: z.string(),
-            quantity: z.number().positive(),
-            unit: z.string().min(1),
-            notes: z.string().optional(),
-          }),
-        ),
-        instructions: z.array(
-          z.object({
-            id: z.string().optional(), // existing instruction id
-            step: z.string().min(1),
-            orderIndex: z.number().int(),
-          }),
-        ),
+        ...recipeFormSchema.shape, // Reuse the existing schema
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -372,4 +324,3 @@ export const recipesRouter = createTRPCRouter({
 export type RecipeWithDetails = Awaited<
   ReturnType<typeof recipesRouter.getAll>
 >[number];
-export type CreateRecipeInput = z.infer<typeof createRecipeSchema>;

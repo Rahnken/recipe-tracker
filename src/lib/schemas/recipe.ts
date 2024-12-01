@@ -3,6 +3,8 @@ import { z } from "zod";
 import { MealType } from "@prisma/client";
 
 export const recipeIngredientSchema = z.object({
+  id: z.string(),
+  recipeId: z.string(),
   ingredientId: z.string(),
   quantity: z.number().positive("Quantity must be positive"),
   unit: z.string().min(1, "Unit is required"),
@@ -10,11 +12,13 @@ export const recipeIngredientSchema = z.object({
 });
 
 export const recipeInstructionSchema = z.object({
+  id: z.string(),
+  recipeId: z.string(),
   step: z.string().min(1, "Instruction step is required"),
   orderIndex: z.number().int(),
 });
 
-export const createRecipeSchema = z.object({
+export const recipeFormSchema = z.object({
   name: z.string().min(1, "Recipe name is required"),
   description: z.string().optional(),
   servings: z
@@ -25,9 +29,9 @@ export const createRecipeSchema = z.object({
   prepTime: z.number().int().positive().optional(),
   cookTime: z.number().int().positive().optional(),
   sourceUrl: z.string().url().optional().or(z.literal("")),
-  mealType: z.nativeEnum(MealType, {
-    required_error: "Meal type is required",
-  }),
+  mealType: z
+    .array(z.nativeEnum(MealType))
+    .min(1, "Select at least one meal type"),
   ingredients: z
     .array(recipeIngredientSchema)
     .min(1, "At least one ingredient is required")
@@ -37,32 +41,4 @@ export const createRecipeSchema = z.object({
     .min(1, "At least one instruction step is required"),
 });
 
-export const recipeFormSchema = z.object({
-  name: z.string().min(1, "Recipe name is required"),
-  description: z.string().optional(),
-  servings: z.number().int().positive().default(1),
-  prepTime: z.number().int().positive().optional(),
-  cookTime: z.number().int().positive().optional(),
-  sourceUrl: z.string().url().optional().or(z.literal("")),
-  mealType: z.nativeEnum(MealType),
-  ingredients: z.array(
-    z.object({
-      id: z.string().optional(),
-      ingredientId: z.string(),
-      quantity: z.number().positive(),
-      unit: z.string().min(1),
-      notes: z.string().optional(),
-    }),
-  ),
-  instructions: z.array(
-    z.object({
-      id: z.string().optional(),
-      step: z.string().min(1),
-      orderIndex: z.number().int(),
-    }),
-  ),
-});
-
 export type RecipeFormData = z.infer<typeof recipeFormSchema>;
-
-export type CreateRecipeInput = z.infer<typeof createRecipeSchema>;

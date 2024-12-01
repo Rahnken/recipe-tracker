@@ -8,9 +8,12 @@ import { useRouter } from "next/navigation";
 
 export default function NewRecipePage() {
   const router = useRouter();
+  const utils = api.useUtils();
+
   const createRecipe = api.recipes.create.useMutation({
-    onSuccess: (recipe) => {
+    onSuccess: async (recipe) => {
       // Redirect to the new recipe's page
+      await utils.recipes.invalidate();
       router.push(`/recipes/${recipe.id}`);
     },
   });

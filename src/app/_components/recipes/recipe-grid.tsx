@@ -6,10 +6,9 @@ import { type RecipeFiltersType } from "./recipe-filters";
 import { RecipeCard } from "./recipe-card";
 import { Skeleton } from "~/components/ui/skeleton";
 
-// Update the interface to match the router return type
 interface RecipeGridProps {
   recipes?: (Recipe & {
-    isFavourite: boolean; // Changed from isfavourite to isFavourite
+    isFavourite: boolean;
     ingredients: {
       ingredient: {
         name: string;
@@ -33,10 +32,8 @@ export function RecipeGrid({
 }: RecipeGridProps) {
   const filteredRecipes = recipes
     .filter((recipe) =>
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-      recipe.mealType.some((mealType) =>
-        filters.mealTypes.includes(mealType as MealType),
-      ),
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument
+      recipe.mealType.some((mealType) => filters.mealTypes.includes(mealType)),
     )
     .filter((recipe) => !filters.showFavourites || recipe.isFavourite);
 

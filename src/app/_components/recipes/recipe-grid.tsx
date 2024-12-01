@@ -32,7 +32,6 @@ export function RecipeGrid({
 }: RecipeGridProps) {
   const filteredRecipes = recipes
     .filter((recipe) =>
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument
       recipe.mealType.some((mealType) => filters.mealTypes.includes(mealType)),
     )
     .filter((recipe) => !filters.showFavourites || recipe.isFavourite);

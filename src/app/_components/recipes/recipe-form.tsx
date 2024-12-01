@@ -367,7 +367,7 @@ export function RecipeForm({
         </div>
         <div className="flex justify-end">
           <Button type="submit" disabled={isSubmitting}>
-            Create Recipe
+            Submit Recipe
           </Button>
         </div>
       </form>

@@ -7,7 +7,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
-import { MealType } from "@prisma/client";
+import { type MealType } from "@prisma/client";
 
 interface MultiSelectProps {
   options: MealType[];

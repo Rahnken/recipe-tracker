@@ -42,6 +42,7 @@ export function RecipeEditDialog({ recipe }: RecipeEditDialogProps) {
     mealType: recipe.mealType,
     ingredients: recipe.ingredients.map((ing) => ({
       id: ing.id,
+      recipeId: ing.recipeId,
       ingredientId: ing.ingredientId,
       quantity: ing.quantity,
       unit: ing.unit,
@@ -49,6 +50,7 @@ export function RecipeEditDialog({ recipe }: RecipeEditDialogProps) {
     })),
     instructions: recipe.instructions.map((inst) => ({
       id: inst.id,
+      recipeId: inst.recipeId,
       step: inst.step,
       orderIndex: inst.orderIndex,
     })),

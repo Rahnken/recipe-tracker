@@ -24,9 +24,13 @@ import { api } from "~/trpc/react";
 
 interface RecipeShareDialogProps {
   recipeId: string;
+  trigger?: React.ReactNode;
 }
 
-export function RecipeShareDialog({ recipeId }: RecipeShareDialogProps) {
+export function RecipeShareDialog({
+  recipeId,
+  trigger,
+}: RecipeShareDialogProps) {
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [permission, setPermission] = useState<"VIEW" | "EDIT">("VIEW");
@@ -41,10 +45,12 @@ export function RecipeShareDialog({ recipeId }: RecipeShareDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          <Share className="mr-2 h-4 w-4" />
-          Share Recipe
-        </Button>
+        {trigger ?? (
+          <Button variant="outline" size="sm">
+            <Share className="mr-2 h-4 w-4" />
+            Share Recipe
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>

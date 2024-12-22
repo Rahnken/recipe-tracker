@@ -18,9 +18,15 @@ import { api } from "~/trpc/react";
 
 interface RecipeEditDialogProps {
   recipe: RecipeWithDetails;
+  trigger?: React.ReactNode;
+  className?: string;
 }
 
-export function RecipeEditDialog({ recipe }: RecipeEditDialogProps) {
+export function RecipeEditDialog({
+  recipe,
+  trigger,
+  className,
+}: RecipeEditDialogProps) {
   const [open, setOpen] = useState(false);
   const utils = api.useUtils();
 
@@ -59,10 +65,12 @@ export function RecipeEditDialog({ recipe }: RecipeEditDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          <Pencil className="mr-2 h-4 w-4" />
-          Edit Recipe
-        </Button>
+        {trigger ?? (
+          <Button variant="outline" size="sm" className={className}>
+            <Pencil className="mr-2 h-4 w-4" />
+            Edit Recipe
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[800px]">
         <DialogHeader>

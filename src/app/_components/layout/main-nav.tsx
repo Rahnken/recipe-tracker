@@ -1,13 +1,18 @@
+"use client";
 // src/components/layout/main-nav.tsx
 import Link from "next/link";
 import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
+import { ModeToggle } from "./theme-toggle";
+import { useTheme } from "next-themes";
+import { dark } from "@clerk/themes";
 
 export function MainNav() {
+  const { theme } = useTheme();
   const linkStyle =
     "p-2 text-sm font-medium transition-colors hover:bg-slate-600 hover:text-white rounded-md";
   return (
-    <header className="bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 w-full border-b backdrop-blur">
-      <div className="mx-2 flex h-14 p-3">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="mx-2 flex h-14 gap-4 p-3">
         <div className="mr-4 flex justify-center">
           <Link
             href="/"
@@ -26,7 +31,10 @@ export function MainNav() {
             </Link>
           </nav>
           <div className="ml-auto flex items-center space-x-4">
-            <UserButton showName={true} />
+            <UserButton
+              showName={true}
+              appearance={{ baseTheme: theme === "dark" ? dark : undefined }}
+            />
           </div>
         </SignedIn>
         <SignedOut>
@@ -34,6 +42,7 @@ export function MainNav() {
             <SignInButton />
           </div>
         </SignedOut>
+        <ModeToggle />
       </div>
     </header>
   );

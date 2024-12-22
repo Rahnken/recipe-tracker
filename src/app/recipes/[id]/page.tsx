@@ -10,6 +10,7 @@ import { cn } from "~/lib/utils";
 import Link from "next/link";
 import { RecipeEditDialog } from "~/app/_components/recipes/recipe-edit-dialog";
 import { RecipeShareDialog } from "~/app/_components/recipes/recipe-share-dialog";
+import { Badge } from "~/components/ui/badge";
 
 export default function RecipePage() {
   const router = useRouter();
@@ -43,7 +44,8 @@ export default function RecipePage() {
           Back
         </Button>
         <div className="flex gap-2">
-          <RecipeEditDialog recipe={recipe} />
+          {recipe.isDefault && <Badge variant="outline">Default Recipe</Badge>}
+          {!recipe.isDefault && <RecipeEditDialog recipe={recipe} />}
           <RecipeShareDialog recipeId={recipe.id} />
         </div>
       </div>

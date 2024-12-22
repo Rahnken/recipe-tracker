@@ -6,6 +6,7 @@ import { type Metadata } from "next";
 
 import { TRPCReactProvider } from "~/trpc/react";
 import { MainNav } from "./_components/layout/main-nav";
+import { ThemeProvider } from "./_components/providers/theme-provider";
 
 export const metadata: Metadata = {
   title: "Meal Planner",
@@ -19,13 +20,20 @@ export default function RootLayout({
     <ClerkProvider>
       <TRPCReactProvider>
         <html lang="en" className={`${GeistSans.variable}`}>
-          <body>
-            <div className="relative flex min-h-screen flex-col p-3">
-              <MainNav />
-              <main className="mx-auto flex-1">
-                <div className="container py-6">{children}</div>
-              </main>
-            </div>
+          <body className="min-h-screen bg-background font-sans antialiased">
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+            >
+              <div className="relative flex min-h-screen flex-col p-3">
+                <MainNav />
+                <main className="mx-auto flex-1">
+                  <div className="container py-6">{children}</div>
+                </main>
+              </div>
+            </ThemeProvider>
           </body>
         </html>
       </TRPCReactProvider>

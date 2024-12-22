@@ -8,7 +8,17 @@ export const recipesRouter = createTRPCRouter({
   getAll: protectedProcedure.query(async ({ ctx }) => {
     const recipes = await ctx.db.recipe.findMany({
       where: {
-        createdBy: ctx.user.id,
+        OR: [
+          { createdBy: ctx.user.id },
+          {
+            isDefault: true,
+            hiddenBy: {
+              none: {
+                userId: ctx.user.id,
+              },
+            },
+          },
+        ],
       },
       include: {
         ingredients: {
@@ -29,6 +39,11 @@ export const recipesRouter = createTRPCRouter({
             id: true,
           },
         },
+        hiddenBy: {
+          where: {
+            userId: ctx.user.id,
+          },
+        },
       },
       orderBy: {
         createdAt: "desc",
@@ -38,9 +53,52 @@ export const recipesRouter = createTRPCRouter({
     return recipes.map((recipe) => ({
       ...recipe,
       isFavourite: recipe.favourites.length > 0,
+      isDefault: recipe.isDefault,
       favourites: undefined, // Remove the favourites array from the response
     }));
   }),
+
+  toggleHidden: protectedProcedure
+    .input(
+      z.object({
+        recipeId: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const recipe = await ctx.db.recipe.findUnique({
+        where: { id: input.recipeId },
+        include: {
+          hiddenBy: {
+            where: {
+              userId: ctx.user.id,
+            },
+          },
+        },
+      });
+
+      if (!recipe?.isDefault) {
+        throw new TRPCError({ code: "BAD_REQUEST" });
+      }
+
+      if (recipe.hiddenBy.length > 0) {
+        await ctx.db.hiddenDefaultRecipe.deleteMany({
+          where: {
+            userId: ctx.user.id,
+            recipeId: input.recipeId,
+          },
+        });
+      } else {
+        await ctx.db.hiddenDefaultRecipe.create({
+          data: {
+            userId: ctx.user.id,
+            recipeId: input.recipeId,
+          },
+        });
+      }
+
+      return { success: true };
+    }),
+
   getById: protectedProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
@@ -68,6 +126,11 @@ export const recipesRouter = createTRPCRouter({
               id: true,
             },
           },
+          hiddenBy: {
+            where: {
+              userId: ctx.user.id,
+            },
+          },
         },
       });
 
@@ -79,17 +142,18 @@ export const recipesRouter = createTRPCRouter({
       }
 
       // Check if user has access to this recipe
-      if (recipe.createdBy !== ctx.user.id) {
+      if (recipe.createdBy !== ctx.user.id && !recipe.isDefault) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "Not authorized to view this recipe",
         });
       }
 
+      // Transform to match getAll return type
       return {
         ...recipe,
         isFavourite: recipe.favourites.length > 0,
-        favourites: undefined,
+        favourites: undefined, // Remove the favourites array from the response
       };
     }),
 
@@ -315,6 +379,34 @@ export const recipesRouter = createTRPCRouter({
         })),
       });
     }),
+  unhideAllDefaults: protectedProcedure.mutation(async ({ ctx }) => {
+    await ctx.db.hiddenDefaultRecipe.deleteMany({
+      where: {
+        userId: ctx.user.id,
+      },
+    });
+    return { success: true };
+  }),
+
+  hideAllDefaults: protectedProcedure.mutation(async ({ ctx }) => {
+    const defaultRecipes = await ctx.db.recipe.findMany({
+      where: {
+        isDefault: true,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    await ctx.db.hiddenDefaultRecipe.createMany({
+      data: defaultRecipes.map((recipe) => ({
+        userId: ctx.user.id,
+        recipeId: recipe.id,
+      })),
+      skipDuplicates: true,
+    });
+    return { success: true };
+  }),
 });
 
 // Export types for use in components
